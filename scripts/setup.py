@@ -106,6 +106,7 @@ def attach_number(cfg, key, pid):
             "pathway_id": pid,
             "pathway_version": None,  # follow the live version; clears any old pin left on the number
             "interruption_threshold": cfg.get("interruption_threshold", 250),
+            "interruptibility": cfg.get("interruptibility", 3),  # 0-4, higher = stops talking sooner when the caller cuts in
             "background_track": cfg.get("background_track", "none"),
             "record": cfg.get("record_calls", True),
             "max_duration": cfg.get("max_call_minutes", 15),

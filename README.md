@@ -10,8 +10,8 @@ Built on [Bland](https://app.bland.ai). The example is a car shop, but it is a t
 
 1. Picks up: "Apex Auto Works, this is Clint. What's up?"
 2. Offers the open times and locks one in.
-3. Asks what the car needs. The caller can dump six things in one breath and it keeps all of them, then reads the list back.
-4. Gets their name and the year, make and model.
+3. Gets their name and the year, make and model.
+4. Asks what the car needs. The caller can dump six things in one breath and it keeps all of them, then reads the list back.
 5. Texts the caller mid-call: "You're booked for next Tuesday at 9:00 AM. Text us back your VIN and a link to the part you bought."
 6. Asks if there's anything else, says goodbye, and hangs up.
 

@@ -5,6 +5,7 @@
   "transfer_number": "+1XXXXXXXXXX",
   "voice_id": "",
   "interruption_threshold": 250,
+  "interruptibility": 3,
   "background_track": "none",
   "record_calls": true,
   "max_call_minutes": 15
