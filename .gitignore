@@ -1,0 +1,6 @@
+.env
+config.json
+.bland-state.json
+.norm/
+__pycache__/
+.DS_Store

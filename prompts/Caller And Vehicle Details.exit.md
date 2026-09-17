@@ -1,0 +1,1 @@
+The caller has given their name (first name is enough) and has said what the car is (year, make and model, in any wording, including spoken forms like "twenty seventeen BMW three forty I"). The moment both have been said by the caller, this is satisfied. Nothing the agent says is required. A phone number is not required.

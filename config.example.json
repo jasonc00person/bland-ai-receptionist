@@ -1,0 +1,11 @@
+{
+  "shop_name": "Apex Auto Works",
+  "agent_name": "Clint",
+  "phone_number": "+1XXXXXXXXXX",
+  "transfer_number": "+1XXXXXXXXXX",
+  "voice_id": "",
+  "interruption_threshold": 250,
+  "background_track": "none",
+  "record_calls": true,
+  "max_call_minutes": 15
+}
