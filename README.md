@@ -21,10 +21,14 @@ At any point, if the caller asks whether they're talking to an AI (politely or n
 
 - A Bland account with a phone number. Sign up at [app.bland.ai](https://app.bland.ai). The Agent Phone Plan gives you a number with unlimited US and Canada minutes and texts.
 - Your Bland API key (in the Bland dashboard under Settings, API Keys).
-- Python 3. Macs already have it. Nothing else to install.
+- Python 3. Macs already have it. On Windows, install it from [python.org](https://www.python.org/downloads/) (tick "Add Python to PATH") and type `python` wherever this page says `python3`.
 - About 10 minutes.
 
 ## Setup
+
+Open Terminal (on a Mac: press Cmd+Space, type Terminal, press Enter) and paste these one at a time.
+
+If your Mac ever pops up a box asking to install developer tools, click Install, wait for it to finish, then run the command again.
 
 ### 1. Get the files
 
@@ -36,47 +40,29 @@ git clone https://github.com/jasonc00person/bland-ai-receptionist.git
 cd bland-ai-receptionist
 ```
 
-No git? Click the green **Code** button on GitHub, choose **Download ZIP**, and unzip it.
+No git? Click the green **Code** button on GitHub, choose **Download ZIP**, unzip it, then in Terminal type `cd ` (with a space) and drag the unzipped folder into the window before pressing Enter.
 
-### 2. Add your API key
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` in any text editor and replace `paste-your-key-here` with your Bland API key. This file stays on your computer. It is never uploaded to GitHub.
-
-### 3. Add your business details
-
-```bash
-cp config.example.json config.json
-```
-
-Open `config.json` and fill it in:
-
-| Setting | What to put |
-| --- | --- |
-| `shop_name` | Your business name, exactly how it should be said on the phone |
-| `agent_name` | The receptionist's first name |
-| `phone_number` | Your Bland phone number, like `+15551234567` |
-| `transfer_number` | A real person's number, for callers who ask for a human |
-| `voice_id` | Optional. A voice ID from the Voices page in Bland. Leave empty for the default. |
-
-### 4. Install it
+### 2. Run the installer
 
 ```bash
 python3 scripts/setup.py
 ```
 
-This creates the whole call flow inside your Bland account. You will see a link to open it in the Bland editor.
+It walks you through everything:
 
-### 5. Test it without a phone
+1. Asks for your Bland API key. Nothing shows while you paste it, that's normal. It is saved in a hidden `.env` file on your computer and never uploaded to GitHub.
+2. Asks for your business name, the receptionist's first name, and a real person's number for callers who want a human. It finds your Bland phone number on its own.
+3. Builds the whole call flow inside your Bland account.
+4. Runs a pretend call in text so you can see it book, text, and hang up. The test text goes to your own Bland number, not to a customer.
+5. Asks before connecting your Bland number to the receptionist.
+
+Then call your number from your cell. You should get one text, and it should hang up by itself at the end.
+
+### Test it again any time
 
 ```bash
 python3 scripts/simulate.py
 ```
-
-This runs a full pretend call in text and tells you if the booking was captured, if the text went out, and if the call ended on its own. The test text goes to your own Bland number, not to a customer.
 
 Two more test callers are included:
 
@@ -88,13 +74,27 @@ python3 scripts/simulate.py tests/rude_caller.json
 python3 scripts/simulate.py tests/service_first.json
 ```
 
-### 6. Go live
+If you skipped connecting your number during setup:
 
 ```bash
 python3 scripts/setup.py --attach
 ```
 
-This points your Bland phone number at the receptionist. Call your number from your cell. You should get one text, and it should hang up by itself at the end.
+### Your settings
+
+Your answers are saved in `config.json`. Open it in any text editor to change them, then apply the changes:
+
+```bash
+python3 scripts/setup.py --update --attach
+```
+
+| Setting | What it is |
+| --- | --- |
+| `shop_name` | Your business name, exactly how it should be said on the phone |
+| `agent_name` | The receptionist's first name |
+| `phone_number` | Your Bland phone number, like `+15551234567` |
+| `transfer_number` | A real person's number, for callers who ask for a human |
+| `voice_id` | Optional. A voice ID from the Voices page in Bland. Leave empty for the default. |
 
 ## Make it yours
 
@@ -134,8 +134,8 @@ scripts/setup.py      Installs, attaches, or updates the flow in your Bland acco
 scripts/simulate.py   Text-only test calls
 scripts/prompts.py    Syncs prompts/ with pathway.json
 tests/                Three scripted callers
-config.example.json   Your business details (copy to config.json)
-.env.example          Your API key (copy to .env)
+config.example.json   Starting point for config.json (setup.py fills it in)
+.env.example          Starting point for .env, where your API key lives
 CLAUDE.md             Instructions for Claude Code
 ```
 

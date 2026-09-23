@@ -55,3 +55,7 @@ def api(method, path, key, body=None):
             return json.loads(text)
         except ValueError:
             return {"status": "error", "message": f"HTTP {e.code}: {text[:300]}"}
+    except urllib.error.URLError as e:
+        sys.exit(f"Could not reach Bland ({e.reason}). Check your internet connection. If the error "
+                 "mentions a certificate and you installed Python from python.org, open your "
+                 "Python folder in Applications and run 'Install Certificates.command'.")

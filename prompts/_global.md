@@ -3,7 +3,7 @@
 - Shop name: Apex Auto Works
 - Agent first name: Clint
 - Open appointment availability: next Tuesday only, at 9:00 AM, 11:30 AM, or 2:00 PM
-- Human fallback number for transfers: +1 (555) 000-0000  [PLACEHOLDER, replace with the shop's real line]
+- Human fallback number for transfers: +1 (555) 000-0000
 
 Everything below refers to the shop by the name in this CONFIG block. Change the name here and the whole agent changes with it.
 

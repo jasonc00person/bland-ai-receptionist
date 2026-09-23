@@ -10,7 +10,8 @@ A Bland (bland.ai) voice receptionist template. The user is probably not a devel
 - `.env` holds `BLAND_API_KEY`. Never print it, never commit it, never ask the user to paste it in chat. `setup.py` injects it into the SMS webhook header at upload time, which is why `pathway.json` only contains the placeholder `REPLACE_WITH_BLAND_API_KEY`. Keep it that way.
 
 ## First-time setup for a user
-1. Check `.env` and `config.json` exist (copy from the `.example` files if not) and ask the user to fill in the key themselves.
+Easiest: have the user run `python3 scripts/setup.py` in their own terminal. In a real terminal it asks for the key (hidden), business name, agent name and transfer number, finds their Bland number via `GET /v1/inbound`, installs, runs a test call, and offers to attach. Your Bash tool has no terminal, so when you run it the prompts are skipped and it needs the files already in place:
+1. If `config.json` is missing, copy `config.example.json` and fill it in yourself (ask for the business name, agent name and transfer number; `phone_number` comes from `GET /v1/inbound`). If `.env` is missing, `cp .env.example .env` and have the user paste the key into it themselves.
 2. `python3 scripts/setup.py`
 3. Run all three sims in `tests/`. All must exit 0.
 4. `python3 scripts/setup.py --attach`, then have the user call their number.
