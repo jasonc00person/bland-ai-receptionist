@@ -4,7 +4,7 @@ A phone receptionist that answers your business line, books the appointment, tak
 
 Built on [Bland](https://app.bland.ai). The example is a car shop, but it is a template: swap the name, the hours, and the questions and it works for any appointment business.
 
-**Video walkthrough:** _coming soon_
+**Video walkthrough:** [watch it on Loom](https://www.loom.com/share/d4b5b4065dc1403ab1e8bfb22a8dd027)
 
 ## What the call sounds like
 
