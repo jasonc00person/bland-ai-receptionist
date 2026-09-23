@@ -19,7 +19,7 @@ At any point, if the caller asks whether they're talking to an AI (politely or n
 
 ## What you need
 
-- A Bland account with a phone number. Sign up at [app.bland.ai](https://app.bland.ai). The Agent Phone Plan gives you a number with unlimited US and Canada minutes and texts.
+- A Bland account with a phone number. Sign up at [app.bland.ai](https://app.bland.ai). The Agent Phone Plan gives you a number with unlimited US and Canada minutes and texts. New and older Bland accounts both work: the installer builds an agent on Bland's current system, and older accounts can ask for a classic pathway instead (see below).
 - Your Bland API key (in the Bland dashboard under Settings, API Keys).
 - Python 3. Macs already have it. On Windows, install it from [python.org](https://www.python.org/downloads/) (tick "Add Python to PATH") and type `python` wherever this page says `python3`.
 - About 10 minutes.
@@ -52,7 +52,7 @@ It walks you through everything:
 
 1. Asks for your Bland API key. Nothing shows while you paste it, that's normal. It is saved in a hidden `.env` file on your computer and never uploaded to GitHub.
 2. Asks for your business name, the receptionist's first name, and a real person's number for callers who want a human. It finds your Bland phone number on its own.
-3. Builds the whole call flow inside your Bland account.
+3. Builds the whole receptionist inside your Bland account.
 4. Runs a pretend call in text so you can see it book, text, and hang up. The test text goes to your own Bland number, not to a customer.
 5. Asks before connecting your Bland number to the receptionist.
 
@@ -73,6 +73,8 @@ python3 scripts/simulate.py tests/rude_caller.json
 ```bash
 python3 scripts/simulate.py tests/service_first.json
 ```
+
+Prefer Bland's older pathway editor (only on accounts made before September 18, 2026)? Run the first install as `python3 scripts/setup.py --v1` instead. Bland is retiring pathways on November 15, 2026, so the default is the safer bet.
 
 If you skipped connecting your number during setup:
 
@@ -131,6 +133,7 @@ These are baked into the template already. Keep them in mind if you change the f
 pathway.json          The complete call flow (steps, routing, text message)
 prompts/              Every prompt as an editable text file
 scripts/setup.py      Installs, attaches, or updates the flow in your Bland account
+scripts/agents.py     Turns the flow into an agent on Bland's current system
 scripts/simulate.py   Text-only test calls
 scripts/prompts.py    Syncs prompts/ with pathway.json
 tests/                Three scripted callers

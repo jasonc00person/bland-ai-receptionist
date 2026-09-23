@@ -2,22 +2,24 @@
 """One-command installer for the AI receptionist.
 
 Reads BLAND_API_KEY from .env and your business details from config.json,
-creates the call flow (a Bland "pathway") in YOUR Bland account, and
-optionally points your Bland phone number at it.
+creates the call flow in YOUR Bland account (an agent on Bland's new system, or a
+classic pathway on older accounts), and optionally points your Bland phone number at it.
 
     python3 scripts/setup.py             # first run: asks for your key and details, installs,
                                          # runs a test call, and offers to connect your number
     python3 scripts/setup.py --attach    # point phone_number from config.json at it
     python3 scripts/setup.py --update    # re-upload after editing prompts/ or config.json
                                          # (overwrites changes made in the Bland editor)
+    python3 scripts/setup.py --v1        # first run only: classic pathway instead of an agent
 
-Never creates duplicates: it remembers your pathway in .bland-state.json.
+Never creates duplicates: it remembers what it made in .bland-state.json.
 No third-party packages needed.
 """
 import getpass, json, os, re, sys, pathlib, subprocess
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from bland import ROOT, api, load_env, load_config, save_state, load_state
+import agents
 
 PLACEHOLDER_KEY = "REPLACE_WITH_BLAND_API_KEY"
 PHONE = re.compile(r"\+\d{11,15}")
@@ -113,30 +115,36 @@ def main():
         sys.exit(f"Bland rejected the API key: {json.dumps(me)[:300]}")
     print("Connected to Bland.")
 
-    pid = state.get("pathway_id")
-    first = not pid
+    name = f"{cfg['shop_name']} Receptionist"
+    first = not (state.get("pathway_id") or state.get("agent_id"))
     if first:
-        r = api("POST", "/v1/pathway/create", key, {
-            "name": f"{cfg['shop_name']} Receptionist",
-            "description": "AI receptionist: books the appointment, takes the work list, texts the caller, hangs up.",
-        })
-        r = r.get("data") or r
-        pid = r.get("pathway_id")
-        if not pid:
-            sys.exit(f"Could not create the pathway: {json.dumps(r)[:300]}")
-        state.update(pathway_id=pid, uploaded=False)
+        # New Bland accounts only have agents. Older ones can pass --v1 for a classic pathway.
+        if "--v1" not in sys.argv and agents.available(key):
+            state.update(agent_id=agents.create(name, key), uploaded=False)
+            print(f"Created agent {state['agent_id']}")
+        else:
+            r = api("POST", "/v1/pathway/create", key, {
+                "name": name,
+                "description": "AI receptionist: books the appointment, takes the work list, texts the caller, hangs up.",
+            })
+            r = r.get("data") or r
+            if not r.get("pathway_id"):
+                sys.exit(f"Could not create the pathway: {json.dumps(r)[:300]}")
+            state.update(pathway_id=r["pathway_id"], uploaded=False)
+            print(f"Created pathway {state['pathway_id']}")
         save_state(state)
-        print(f"Created pathway {pid}")
+    thing = "agent" if state.get("agent_id") else "pathway"
+    installed = state.get("agent_id") or state.get("pathway_id")
     update = update or not state.get("uploaded", True)  # also retries a first upload that failed
     if not first and update:
-        print(f"Updating existing pathway {pid}")
+        print(f"Updating existing {thing} {installed}")
     if not (update or attach):
-        print(f"Already installed as pathway {pid}.")
+        print(f"Already installed as {thing} {installed}.")
         print("Use --update to re-upload your edits, or --attach to point your phone number at it.")
         return
 
     if update:
-        upload(cfg, key, pid)
+        upload(cfg, key, state)
         state["uploaded"] = True
         save_state(state)
     if first and sys.stdin.isatty():
@@ -146,17 +154,24 @@ def main():
                       "python3 scripts/simulate.py to try again.")
         attach = attach or yes(f"\nConnect {cfg['phone_number']} so the receptionist answers real calls?")
     if attach:
-        attach_number(cfg, key, pid)
+        attach_number(cfg, key, state)
     else:
-        print("Pathway is ready. Run with --attach to point your phone number at it.")
-    # The editor opens on an empty draft unless you ask for the live version (version=0)
-    print(f"\nSee it in the Bland editor: https://v1.app.bland.ai/dashboard/convo-pathways?id={pid}&version=0")
+        print("Receptionist is ready. Run with --attach to point your phone number at it.")
+    if state.get("agent_id"):
+        print(f"\nSee it in Bland: https://v2.app.bland.ai/dashboard, then pick \"{name}\" from the agent menu at the top left.")
+    else:
+        # The editor opens on an empty draft unless you ask for the live version (version=0)
+        print(f"\nSee it in the Bland editor: https://v1.app.bland.ai/dashboard/convo-pathways?id={installed}&version=0")
 
 
-def upload(cfg, key, pid):
+def upload(cfg, key, state):
     subprocess.run([sys.executable, str(ROOT / "scripts" / "prompts.py"), "apply"], check=True)
     g = build_graph(cfg, key)
-    r = api("POST", f"/v1/pathway/{pid}", key, {
+    if state.get("agent_id"):
+        agents.ship(state["agent_id"], agents.build_snapshot(g, cfg, key), key)
+        print("Uploaded the call flow and put it live.")
+        return
+    r = api("POST", f"/v1/pathway/{state['pathway_id']}", key, {
         "name": f"{cfg['shop_name']} Receptionist",
         "description": "AI receptionist built from the bland-ai-receptionist template.",
         "nodes": g["nodes"],
@@ -167,13 +182,15 @@ def upload(cfg, key, pid):
     print(f"Uploaded call flow: {len(g['nodes'])} steps, {len(g['edges'])} connections.")
 
 
-def attach_number(cfg, key, pid):
-    if True:
-        number = cfg.get("phone_number", "").strip()
-        if not number or "X" in number.upper():
-            sys.exit("Set phone_number in config.json to your Bland number first (format +15551234567).")
+def attach_number(cfg, key, state):
+    number = cfg.get("phone_number", "").strip()
+    if not number or "X" in number.upper():
+        sys.exit("Set phone_number in config.json to your Bland number first (format +15551234567).")
+    if state.get("agent_id"):
+        agents.attach(state["agent_id"], number, key)  # voice and call settings ride along in the agent
+    else:
         body = {
-            "pathway_id": pid,
+            "pathway_id": state["pathway_id"],
             "pathway_version": None,  # follow the live version; clears any old pin left on the number
             "interruption_threshold": cfg.get("interruption_threshold", 250),
             "interruptibility": cfg.get("interruptibility", 3),  # 0-4, higher = stops talking sooner when the caller cuts in
@@ -186,7 +203,7 @@ def attach_number(cfg, key, pid):
         r = api("POST", f"/v1/inbound/{number}", key, body)
         if r.get("status") == "error" or r.get("errors"):
             sys.exit(f"Could not attach the number: {json.dumps(r)[:400]}")
-        print(f"Attached to {number}. Call it to talk to your receptionist.")
+    print(f"Attached to {number}. Call it to talk to your receptionist.")
 
 
 if __name__ == "__main__":
